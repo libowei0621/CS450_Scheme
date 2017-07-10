@@ -1,0 +1,119 @@
+Part B
+
+Thinking and Strategy
+
+As a starting point, I first write the program which does not implement dynamic
+programming. Before implement the dynamic programming, it is a very easy problem
+to solve. There are three steps, first is recording the cost by reading the map,
+second is recursively calculating the shortest cost path from start to end, and
+final step is printing out the solution. At this time, I just need one table
+called node-table which saves the cost between the nodes which have edge. For
+example, the form of node-table will be ((b2 (b3 . 10) (b4 . 20))(b3 (end
+. 10))). So I call the take-node procedure to read and save the nodes and costs,
+then use the cost procedure which takes 'start as the argument to calculate the
+smallest cost from start to end node. In the cost procedure, there is a helper
+procedure called compute which take a list of one node's children and
+recursively compute the smallest cost of them.
+
+Then I start writing the dynamic programming part. In order to implementing the
+dynamic programming, I create a new table called path-table which will save the
+smallest cost and shortest path from current node to the end node. So the form
+of this table will be like this, ((b2 (20 b2 b3 end))(b3 (10 b3 end))). In this
+case, b2 and b3 will be first value of the two-dimensional table, then 20 and 30
+will be second value of the two-dimensional table, and (b2 b3 end) and (b3 end)
+will be value of the two-dimensional table. It means that the shortest path from
+b2 to end is b2 b3 end and total cost is 20, and the shortest path from b3 to
+end is b3 end and total cost is 10. And there are also some changes in my
+procedures which help me to implement the dynamic programming.
+
+The first change is in the lookup procedure from the book. I make this procedure
+return every element under the first value if the input of second value is
+null. For example, (lookup b2 '() node-table) will return ((b3.10)(b4.20)), and
+(lookup b2 '() path-table) will return (20 b2 b3 end). This little change make
+me easy to check does a node has children or not, and get the smallest cost and
+shortest path from current node to the end node. So every time when I call the
+cost procedure, it will check does the path-table contains the smallest cost and
+shortest path for current node. If yes, return the list which form by the cost
+and path. Otherwise, call compute procedure to do the calculation.
+
+The second change is in the compute procedure. This procedure is no longer just
+compute the cost, it will also record the path and return it. So the new compute
+procedure will compute the cost between the current node and previous node, and
+then add the cost with previous cost; furthermore, put the name of current node
+to the first position of the path list, finally compare the cost, return the
+smallest cost with its path as the output. 
+
+Finally, I add some codes in the cost procedure in order to make that cost
+procedure will doing the path-table check. So in the cost procedure, when we
+call it with a node as the input, cost will check does path-table already has
+the shortest path and smallest cost for this node. If yes, it will return the
+list which contains the cost and path. Otherwise, cost procedure will call
+compute procedure to calculate the smallest cost and shortest path for current
+node, then put them in to the path-node. As describe before, the first element
+will be current node, second will be the smallest cost, and value will be the
+list of nodes which form the shortest path.
+
+By these changes, the original procedure becomes a new procedure which
+implements dynamic programming. 
+
+
+
+
+Problems and Mistakes
+
+The first problem I meet is how to check every child's cost of current node and
+return the smallest one. I have to say that I misunderstand the pseudo-code at
+beginning. After I finish read the pseudo-code, I think the program just needs
+one procedure called cost to calculate the cost for node. As the pseudo-code
+describes, inside the cost, there is a loop which will take every child of
+current node and compute the cost of them and then return the minimum of
+them. At this time I get a problem, does Scheme have loop operator? Maybe scheme
+does but I have not learn it yet, and it is also not good idea to use loop in
+functional language. Then I consider how about make cost be a recursive function
+to check every child of node. It is also not a way because cost just take one
+node as the argument, but the children may be a list of nodes and cost, they
+cannot match up. Finally I notice that I really need a helper procedure to do
+the checking process. So I define a helper procedure called compute which takes
+a list of pair of node and cost as the argument and return the minimum cost of
+these nodes. When I call the cost procedure with a node, the cost procedure will
+use my special lookup procedure to get all children of this node as a list and
+call the compute procedure with this list to compute the minimum cost of current
+node's children. And in the compute procedure, it will call cost procedure
+because of course child node will have its children, we need to know the minimum
+cost of their children's cost in order to calculate current node's minimum
+cost. So it works like a "nested recursive" (sorry I don't know how to call this
+process, I think this way looks like the nested loop, one loop inside other
+loop), one procedure x calls another procedure y inside which calls x during the
+recursive process. By these two procedures' cooperation, this problem gets
+fixed.
+
+The second problem I meet is how to record the shortest path. At beginning I try
+to define a global list variable which will save the shortest path. So every
+time when compute and cost procedure get the smallest cost of one node, I can
+use some helper procedures to add current node into the list. When the recursive
+process finish, I will get a shortest path. But after some thinkings, I notice
+this way is hard to implement with dynamic programming because at this time, my
+old path-table was just a table which contains node and its smallest cost to
+end. When the cost procedure finds that the path-table has the cost for current
+node, the table won't return anything except the cost which means I will lost
+the path. So in order to fix this problem, I redesign my path-table, cost
+procedure, and compute procedure. I make my cost and compute procedure no longer
+just return the integer but also the list of nodes which is the shortest path
+from current node to the end node, and as describe before, my path-table will
+also save the list of nodes as the value for the table. So if path-table
+contains the smallest cost and shortest path for current node, it will return a
+pair of cost and list of nodes; otherwise, compute the minimum cost for the
+current node, and use cons operator to add current node into previous shortest
+path, and then put them into path-table. And this is the final version of my
+program as I describe before.
+
+
+
+Conclusions
+
+Part B is a very interesting programming assignment. It is my start point for
+homework 4. Path program let me think a lot of variables, table structure,
+recursive function, and return form of function. At beginning I designed to
+define many variables to save something like the shortest path or smallest cost
+which looks like codes in Java and C, but at end I find that I can get
+everything I need just by lookup two tables. 

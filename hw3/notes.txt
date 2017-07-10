@@ -1,0 +1,99 @@
+Bowei Li
+CS 450
+2013/9/25
+Notes file
+
+
+Thinking and Strategy
+
+Unlike the assignments which we took before, this assignment needs many
+procedures to do a big job. I think there are four steps to do the convert
+job. First step is looking the base-unit for every unit in two unit-list. Second
+step is combining these base-units to be a base-unit-list. Third step is to
+check are these two unit-list comparable. And if these two unit-list are
+comparable, we do the calculation to convert one unit to other one. So in my
+codes, i write four big helper procedures to do the convert job.
+
+First one is look-up procedure. It is an easy procedure to write. This procedure
+will find the appropriate base-unit for the input unit. This procedure will also
+take care of the power, such as (m 2) which means square meter. So inside the
+look-up procedure, there are two more procedures which named power and
+power-unit. power procedure just return the p power of n. And power-unit will
+return p power of an unit n, for example, power three of (m 1) will be (m 3).
+
+Second one is combine-unit-list. This procedure combines two base-unit-list to
+be one list, such as ((kg 1)(m 2)) combined with ((m 1)(sec 2)) will be 
+((kg 1)(m 3)(sec 2)). There also is a helper procedure inside combine-unit-list
+procedure which adds two single base-unit together. By using this helper
+procedure, the combination become sample, and there is my way. I assume every
+base-unit-list is ordered list because in the units.dat file, the output of
+every unit will be ((kg n)(m x)(sec y)) which n,x,y are numbers. The first
+element of a base-unit-list will always be (kg n) which n can be zero, and
+second will be (m x) which x can be zero, and final one will be (sec y) which y
+can be zero. So I take every element in first list and use assoc procedure to
+find is there same base-unit in second list. If there is, add them up and cons
+with next one, if not, just cons the current base-unit with next one. 
+
+Third helper procedure is compare? procedure. This procedure will determine are
+two input base-unit-list comparable or not, in other word, do they have same
+element with same power. So in this procedure, take every element from first
+list and use assoc to find same unit in second list. If there is a same unit in
+second list, compare their power equal or not; if assoc return #f, just return
+#f because two lists do not have same elements.
+
+Final one is convert-unit which just take the unit-list as input, and then use
+combine-unit-list and look-up procedures return the base-unit-list of the input.
+
+By using these four helper procedure, the convert procedure works well.
+
+
+
+
+Mistakes and Problems
+
+There are two main problems I met during this assignment. First one is the
+problem of using car and cdr and other like caar or cdar. At beginning, I think
+the letter a means go left and letter d means go right. So in my opinion, cadr
+means go left first and then go right because a is before d. But I am
+wrong. Cadr really means (car (cdr x)) which goes to the right part first and
+then go to lift part. Because of this problem, I spend a lot of time to fix my
+codes after I run the test.
+
+The second problem is that I am not very clear on the difference between '((k
+1)) and '(k 1). '((k 1)) is a list which contains one element '(k 1), and '(k 1)
+is a list which contains two element 'k and 1. At beginning I didn't pay much
+attention on this difference. This problem gives me many troubles about the form
+of input for my procedures. All inputs are supposed to be the list of the units,
+not a list of characters and number, but I treat all input as the form of list
+of characters and number. So when I use car and cdr, it returns a list, not a
+single character or number. And when I run the program, there are a lot of
+errors come out. This problem also waste my lot times to fix.
+
+
+
+Answer for Questions
+
+For the quotes question, it is necessary because we want the input is a list of
+a number and unit-list. If we remove the quotes, (27.5 (furlong 1)(fortnight
+-1)) will be a function call.
+
+For the formal U = (u/v) V, it is very easy to proof. Let U be in and V be
+ft. From the database, we know 1 in = 0.0254 (m 1) and 1 ft = 0.3048 (m 1). So u
+will be 0.0254 and v will be 0.3048, and U-normalized and V-normalized is same,
+(m 1). Then we divide U by V which will be U/V = (u U-normalized)/(v
+V-normalized), and multiply V on both side, we will get U = ((u U-normalized)/(v
+V-normalized)) * V. Because U-normalized is same as V-normalized, they cancel
+out. Finally, we get U = (u/v) V.
+
+
+
+Conclusion
+
+The most things I learn from this assignment are the understanding of the
+structure of list and the using of the form of car, cdr, and all extend
+forms. If there are more time, it is not hard to make the program to be more
+user-friendly. I just need to write one helper procedure which will translate
+the input from user to be the form which my procedures can read. So if user
+types in 1 kg square, I keep the number 1 as the first element and then cons kg
+and square as a list (kg 2). Finally cons the number 1 and the unit-list and we
+get (1 (kg 2)).

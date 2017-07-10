@@ -1,0 +1,72 @@
+;;Bowei Li
+;;CS 450
+;;2013/9/22
+;;Assignment 3
+
+
+;;power is a helper procedure which will return the n power of x.
+
+(define (look-up unit)
+  (define (power x n)
+    (cond ((= n 0) 1)
+          ((> n 0) (* x (power x (- n 1))))
+          ((< n 0) (/ 1 (power x (abs n))))))
+  (define (power-unit u n)
+    (if (null? x)
+        '()
+        (cons (list (caar x) (* (cadar x) y))
+              (power-unit (cdr x) y))))
+  (let ((p (cdar unit))
+        (base-unit (assoc (caar unit) source)))
+    (if (base-unit)
+        (cons (power (car base-unit) p)
+              (power-unit (cdr base-unit) p))
+        unit)))
+
+
+(define (combine-unit-list x y)
+  (define (add-unit first second)
+    (if (equal? (car first) (car second))
+        (list (car first) (+ (cadr first) (cadr second)))
+        (list first second)))
+  (cond ((null? x) y)
+        ((null? y) x)
+        (else
+         (if (>= (length x) (length y))
+             (if (assoc (caar x) y)
+                 (cons (add-unit (car x) (assoc (caar x) y)) 
+                       (combine-unit-list (cdr x) (cdr y)))
+                 (cons (car x) (combine-unit-list (cdr x) y)))
+             (combine-unit-list y x)))))
+
+;;convert-unit is a helper procedure which convert the input unit to a list of
+;;base-unit.
+
+(define (convert-unit u)
+  (if (null? (cdr u))
+      (look-up u)
+      (let ((crt-unit (look-up u))
+            (nxt-unit (convert-unit (cdr u))))
+        (cons (* (car crt-unit) (car nxt-unit))
+              (combine-unit-list (cdr crt-unit) (cdr nxt-unit))))))
+
+
+(define (convert quantity unit)
+  (let ((u (look-up (cdr quantity)))
+        (v (look-up unit)))
+    (cons (/ (* (car quantity) (car u)) (car v)) unit)))
+            
+  
+
+
+;;read-file produces a list whose elements are the expressions in the fill.
+
+(define (read-file)
+  (let ((expr (read)))
+    (if (eof-object? expr)
+        '()
+        (cons expr (read-file)))))
+
+;;Here we go: read in the database.
+
+(define source (with-input-from-file "units.dat" read-file))

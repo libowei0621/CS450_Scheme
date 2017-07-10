@@ -1,0 +1,115 @@
+Problem 5.24
+
+For this problem, we are going to install cond as a special form, which means we
+have to let our machine knows how to handle cond expressions. The first thing I
+do is to add some helper procedures, such as cond?, cond-clauses,
+cond-else-clause?, as the built-in operators for the machine. It is very simple,
+just modify the list of operations. And then, I add a cond checker inside of
+eval-dispatch. When the expression is a cond expression, this checker will let
+machine go to ev-cond which is the code we write to do the cond expression. At
+this point, all the preparation is done, and it's time to write ev-cond.
+
+When the machine comes to ev-cond label, it is means that in exp variable is a
+cond expression. Cond expression is a list of condition and actions and its
+first element is 'cond. So the first thing I do is to remove the cond
+quotation. I just use cond-clauses to get the all clauses and assign these into
+exp register. Then I write a test to see is exp null? If it is null, it means
+there is no more clause need to do, then machine will goto ev-cond-end label
+which just goto continue label. If exp is not null, then we know there is clause
+we have to do. So there, I use car operator to get the first clause of the
+clauses sequence and assign to unev, and then use cdr to get rest clauses and
+assign to exp. At this point, we have the first clause in unev and rest of
+clauses in exp. And then we check is unev is a else clause? If is, we just goto
+cond-else which just put the action of else clause into exp register and then
+goto eval-dispatch. If not, we save the env, continue, unev, and exp on to the
+stack, and use cond-predicate to get the predicate and assign to exp, assigh
+ev-cond-loop into continue register, and then go to eval-dispatch to compute the
+result.
+
+In the ev-cond-loop, it first check is val ture or not. When the machine comes
+ev-cond-loop, the value in val must be a boolean variable. If val is a true, we
+just goto cond-result label which will get the cond action from unev and then
+put it in to exp register and then goto eval-dispatch. If val is not a true, we
+will get our exp, continue, env value from stack and then go to ev-cond to do
+the next clauses.
+
+All above are my steps for doing cond on a machine. And during this exercise, I
+made two small mistakes which took me a while to fix. First mistake is the
+position of the checker for cond in eval-dispatch. At beginning, I do not pay
+much attention about where I should put the test of cond in eval-dispatch, so a
+just add the code after the test for application. Because of it, when I test my
+code, machine just shows that unbounded variable cond. I put the checker for
+cond after application checker, so machine will pass the cond expression to
+application first. Because we did not install cond as a primitive procedure in
+the global environment, the machine just return a unbounded variable error. 
+
+The second mistake is that in the cond-result, I forget to restore the continue
+from stack. When machine get a true value from predicate, it will goto
+cond-result to get the action and then goto eval-dispatch to evaluate it. At
+this time, the continue register is still ev-cond-loop, not the orignal continus
+before cond, and the env register is same situation. Because of it, when I test
+my code, the machine gives me some funny result.
+
+
+
+Problem 5.26
+
+a)
+n       total-pushes        maximum-depth
+1          64                    10
+2          99                    10
+3         134                    10
+4         169                    10
+5         204                    10
+6         239                    10
+
+The maximum depth is 10.
+
+b)
+35n + 29
+
+
+
+Problem 5.27
+
+n       total-pushes        maximum-depth
+1          16                     8
+2          48                    13
+3          80                    18
+4         112                    23
+5         144                    28
+6         176                    33
+
+total-pushes = 32n - 16
+maximum-depth = 5n + 3
+
+
+                maximum-depth     total-pushes
+recursive         5n + 3            32n - 16
+iterative           10              35n + 29
+
+
+
+
+Problem 5.28
+
+For iterative
+n       total-pushes        maximum-depth
+1          70                    17
+2         107                    20
+3         144                    23
+4         181                    26
+5         218                    29
+6         255                    32
+
+For recursive
+n       total-pushes        maximum-depth
+1          18                    11
+2          52                    19
+3          86                    27
+4         120                    35
+5         154                    43
+6         188                    51
+                maximum-depth     total-pushes
+iterative         3n + 14          37n + 33
+recursive         8n + 3           34n - 16

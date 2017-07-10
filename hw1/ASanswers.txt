@@ -1,0 +1,100 @@
+Bowei Li
+CS 450
+2013/9/9
+
+
+Problem 1.11
+
+This problem contains two parts. Writing the procedure in two ways, one is using
+recursive process and other one is using iterative process.
+
+It is easy to write this procedure in recursive way. The basic case is when n <
+3, return n; otherwise calculate the result by using the function f(n) = f(n-1)
++ 2f(n-2) + 3f(n-3). So there is my codes:
+
+(define (f n)
+        (if (< n 3) 
+            n
+            (+ (f (- n 1)) (* 2 (f (- n 2))) (* 3 (f (- n 3))))
+            ))
+
+But it takes me long time to think about iterative process. As the problem
+describes, we have to use the function f(n) = f(n-1) + 2f(n-2) + 3f(n-3) to
+calculate result when the input is greater than 3. The last process is addition,
+not the recursive function call, so I get lost to change it to be an iterative
+function. But the example codes of Fibonacci numbers gives me some
+hints. Similar as calculating Fibonacci numbers, the function we use is made up
+by three previous elements. For example, if we want to calculate f(4), it will
+be f(3) + 2*f(2) + 3*f(1), and f(5) will be f(4) + 2*f(3) + 3f(2). So we can
+write the code which saves current first two elements and result of current
+input in order to calculate next step.
+
+So there is my codes:
+
+(define (f n)
+    (if (< n 3)
+        n
+       (f-iter 2 1 0 3 n)))
+
+(define (f-iter f-element s-element t-element count target)
+    (if (= count target) 
+        (+ f-element (* 2 s-element) (* 3 t-element))
+        (f-iter (+ f-element (* 2 s-element) (* 3 t-element))
+                f-element
+                s-element
+                (+ count 1)
+                target))
+                        )
+
+For testing these two procedures, first I put same input for both of them, and I
+get same result. This means they both works well. And then i put a very large
+number, 999999999999999999, as the input, and the difference is showed up
+between two procedure. For the recursive version, DrRacket shows error about run
+out of memory. DrRacket cannot evaluate the function anymore. And for the
+iterative version, DrRacket just keeps running, no error comes out. The reason
+for this is that recursive version keeps using memory to save functions in order
+to come back and calculate result after evaluating everything. When the input is
+very large, there is not enough memory for the program to save the
+functions. But for the iterative version, it just needs to save three elements
+and then can calculate everything by using these three elements. The memory it
+uses will not grow up.
+
+Actually, when I used iterative version to calculate f(99999999999999999), I
+still didn't get result even though after twenty minutes. How big it is!
+
+
+
+Problem 1.12
+
+(define (p r e)
+        (if (or (= r 0) (= e 0) (= r e))
+            1
+            (+ (p (- r 1) e) (p (- r 1) (- e 1)))))
+
+
+
+Problem 1.17
+
+We want to calculate a * b. There are four cases, first and second are easy. If
+b equals 0, return 0 because everything times zero will be zero. Second one is
+that if b equals 1, return a because everything times one will get itself back. 
+
+Third one is that b is even number. If b is an even number, we can keep dividing
+b by 2 until b equals 1, and every time we do the division, we double the number
+of result of a times new b. For example, if b equals 8, the whole function will
+be (2*(2*(2*(2*(a*1))))).
+
+And last case is that b is odd number. For this case, we just decrease b by 1
+in order to make even and then add a to the final result. For example, if b
+equals 9, we decrease b by 1 to make it becomes 8, and then add a. The function
+will be a + (2*(2*(2*(2*(a*1))))
+
+The big O for this procedure is O(log2n). We use b as the counter, and each time
+b will becomes half smaller. There is the codes:
+
+(define (fast-expt a b)
+   (cond ((= b 0) 0)
+         ((= b 1) a)
+         ((even? b) (double (fast-expt a (halve b))))
+         (else (+ a (fast-expt a (- b 1))))))
+

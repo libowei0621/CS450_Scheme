@@ -1,0 +1,203 @@
+Bowei Li
+CS 450
+Homework 5
+notes file
+
+The first three problems in this assignment are not very hard. These problems
+are just about some basic operators of stream. Then I start doing problem 4. In
+fact, it is not hard to understand if read the article carefully, but this
+problem requires some help procedure. 
+
+First of all, this problem requires a procedure which return the power of 10
+depends on the length of list. One thing important here is that the length of
+number must be equal the length of a-list. This is trick, if we calculate power
+of 10 depends on the length of a-list, we will get the number which has one more
+0 than the length of a-list. For example, if I want to calculate pow of list (2
+3), I will get 100 if I use normal recursive way to calculate. So at this point,
+I just decreasing the length of input list by 1, and change the base case to be
+(<= n 0) instead of (= n 0). Then, if we pass the list (2 3) into pow, we will
+get 10.
+
+Secondly, this problem requires a procedure which take a integer as the input
+and then return a list which contains all digits in the integer. It is not hard
+to do. We can first translate the integer to a string by using number->string,
+and then use the string->list to translate this string to be the list. But one
+thing need to take care here, when we use number->string, it will return the
+ASCII number of this digit. So I create a helper procedure which take a list as
+the argument, and then let every element in the list to subtract the ASCII
+number of 0, and return the list of these new element. Then we will get a list
+of integer. We always do this in C language. 
+
+By using these two helper procedures, we can do the mult-stream. Because we need
+to use recursive, we don't have to create any variables to carry the data. In
+order to implement recursive, all three procedure will take three elements as
+the argument. So for action, produce, and consume procedure, they will take a,
+a-list, and strm as input, and mult-stream will take two arguments which are m,
+the multiplier, and the input-strm. So first we call action with the input 0 for
+a, '() for a-list, and input-strm for strm. Then we check is the strm null? If
+yes, just return the stream of a-list; otherwise, we calculate the pow of a-list
+first, if the a-list is not null and m plus the reminder of a and pow is smaller
+than pow, we call produce procedure with the input a, a-list, and
+strm. Otherwise, call consume procedure with the input a, a-list, and strm.
+
+And then, as the article describes, in the produce, we use cons-stream to
+combine the first digit of a-list and the call to action with new a, new a-list,
+and the strm. In consume, we multiply a * 10 and m * first element of strm, then
+get the list of digits of this new number, and call the action with this new
+number, new list, and strea-cdr strm. One thing need to take care here, if the
+length of new list shorter or equal to the old list, we have to add 0 at
+beginning of list because 37 and 037 are same number, but their list is
+different, we cannot take of the 0. So just call if to test (length new-list) <=
+(length list).
+
+These are all about problem 4, and after finish it, the problem 5 seems every
+easy. Same as problem 4, there are three procedure in pi. There are action,
+produce, and consume, and all of them just take two element as arguments, one is
+a and other one is the sequence of matrix that corresponding the linear
+fractional transformation. There also are few helper procedures which help me to
+calculate the digits of pi. First I create a constructor that will create a
+matrix data structure which just a list contains four integers. And then there
+are selector procedure which will return the integer of the position depend on
+the input; compose procedure which will multiple m1 and m2 and return the new
+matrix; add-matrix-stream procedure which will be used in stream-map to form the
+sequence of linear fractional transformation of our function; and also the
+compute procedures which will apply the input to the input-matrix return answer,
+and the ready? procedure which will check does input matrix have same integer
+part when it applied 3 and applied 4.
+
+So there are the steps, first we call action procedure with matrix (1 0 0 1)
+which is self-identify matrix and the sequence of the matrix of our pi
+function. Action procedure will pass a to ready? procedure to check does a have
+same result when it applied 3 and applied 4. If a does, we call produce
+procedure with matrix a and sequence. Produce procedure will take the digit by
+calling compute procedure to apply 3 to matrix a, and uses cons-stream to
+combine this digit and calling to action. At this point, the argument gets
+change. We need to do something that make a lost the value we just calculate. So
+there is a helper procedure called lost-value which take one argument n and
+return the matrix (10 (* -10 n) 0 1). We just compose lost-value matrix and
+current matrix a, and pass this new matrix and sequence to action. If a does not
+have same result, the action procedure will call consume procedure with argument
+a and sequence. In the consume procedure, we just compose a with the first
+element of sequence, and remove this element from sequence, and pass these two
+new arguments to action.
+
+Not too hard to write code, but I made a mistake when I write the consume and
+produce procedures. Even though it is a small mistake, it bothers me long
+time. The mistake is that when I call the compose procedure, I put wrong order
+of two matrix. In the consume, we multiply a and the first element of the
+sequence. At this point, I put a on the right, and I put a on the left in the
+produce procedure. Because of this, when I call pi, I just get a stream which
+every elements is 3. I was confused by this long time, and finally I just use
+pencil to calculate the multiplication of matrix, and I find that I put a wrong
+order of a and other two matrices. 
+
+All in all, it is not a hard homework if having good understand of the
+article. The codes are very simple, just few lines. It amazes me, I thought we
+need many steps and procedures to calculate digits of pi. This homework let me
+know a lot of stream and convenient of stream. We don't have to evaluate until
+we need it. It is really powerful in some case.
+
+
+
+Table for Problem 4
+
+                          Output Stream    a   a-list   pow   Input Stream
+                                     ()    0      ()     -  (9 8 7 4 3 6 9 1 7)
+a-list is empty; consume 
+                                     ()  783   (7 8 3)  100   (8 7 4 3 6 9 1 7)
+87+83 >= 100; consume
+                                     () 8526  (8 5 2 6) 1000    (7 4 3 6 9 1 7)
+87+526 < 1000; produce
+                                    (8)  526    (5 2 6) 100     (7 4 3 6 9 1 7)
+87+26 >= 100; consume
+                                    (8) 5869  (5 8 6 9) 1000      (4 3 6 9 1 7)
+87+869 < 1000; produce
+                                   (85)  869    (8 6 9) 100       (4 3 6 9 1 7)
+87+69 >= 100; consume
+                                   (85) 9038  (9 0 3 8) 1000        (3 6 9 1 7)
+87+038 < 1000; produce
+                                  (859)   38    (0 3 8) 100         (3 6 9 1 7)
+87+38 >= 100; consume
+                                  (859)  641  (0 6 4 1) 1000          (6 9 1 7)
+87+641 < 1000; produce
+                                 (8590)  641    (6 4 1) 100           (6 9 1 7)
+87+641 >= 100; consume
+                                 (8590) 6932  (6 9 3 2) 1000            (9 1 7)
+87+932 >= 1000; consume
+                                 (8590)70103 (7 0 1 0 3) 10000            (1 7)
+87+103 < 10000; produce
+                                (85907) 0103   (0 1 0 3) 1000             (1 7)
+87+103 < 1000; produce
+                               (859070)  103     (1 0 3) 100              (1 7)
+87+03 < 100; produce
+                              (8590701)    3       (0 3) 10               (1 7)
+83+3 >= 10; consume
+                              (8590701)  117     (1 1 7) 100                (7)
+83+17 >= 100; consume
+                              (8590701) 1779   (1 7 7 9) 1000                ()
+Input stream empty
+                          (85907011779)
+
+
+
+
+Calculation for Problem 5, part 1
+
+2 + 1/3(3) = 2
+2 + 1/3(2 + 2/5(3)) = 3.066666667
+2 + 1/3(2 + 2/5(2 + 3/7(3))) = 3.104761905
+2 + 1/3(2 + 2/5(2 + 3/7(2 + 4/9(3)))) = 3.123809525
+2 + 1/3(2 + 2/5(2 + 3/7(2 + 4/9(2 + 5/11(3))))) = 3.133044733
+2 + 1/3(2 + 2/5(2 + 3/7(2 + 4/9(2 + 5/11(2 + 6/13(3)))))) = 3.137484737
+
+The results for each steps are almost same as the results which applied 2.
+
+
+
+
+Answer for Problem 5, part 2
+
+First we have a fractional linear transformation f(x) = (ax + b)/(cx + d). The
+corresponding matrix for this transformation is 
+|a  b|
+|    |
+|c  d|
+Then we want to add 3 to it, which will be 
+(ax + b)/(cx + d) + 3 
+= (ax + b)/(cx + d) + 3(cx + d)/(cx +d) 
+= ((ax + b) + (3cx + 3d))/(cx + d)
+= ((a + 3c)x + (3d + b))/(cx + d)
+And the reciprocal of this result will be (cx + d)/((a + 3c)x + (3d + b)).
+The corresponding matrix for this result will be
+|  c         d   |
+|                |
+|(a+3c)  (3d + b)|
+
+
+
+
+Proof for Problem 5, part 3
+
+Let f(x) = (ax + b)/(cx + d)
+    g(x) = (wx + y)/(zx + r)
+
+then f(g(x)) will be ((aw + bz)x + (ay + br))/((cw + dz)x + (cy + dr))
+
+The corresponding matrix for f(x) will be 
+|a  b|
+|    |
+|c  d|
+
+and the corresponding matrix for g(x) will be
+|w  y|
+|    |
+|z  r|
+
+we multiply these two matrix, then we get
+ 
+        |(aw + bz)    (ay + br)|
+f * g = |                      |
+        |(cw + dz)    (cy + dr)|
+
+which is the corresponding matrix for the f(g(x)). So the set of linear
+fractional transformation is closed under composition.

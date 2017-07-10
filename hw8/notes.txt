@@ -1,0 +1,70 @@
+Bowei Li
+CS 450
+Homework 8
+Notes file
+
+In this assignment, we have to implement the breakpoint in order to do some
+debug process. From the description, the breakpoint must contains the label and
+the line number which has to stop. The machine will stop dependent on the line
+number. So I first create two local variable called current-line and
+breakpoint-line. Current-line will contain the line number which machine is
+doing, and breakpoint-line will contain the line number which user gives. When
+these two variables are same, it means it is the time to stop the machine. And
+we need a thing to contains all breakpoints because of course there will be more
+than one breakpoint in a big machine. So I also create a empty list called
+labels in order to contain all breakpoint. Right now, the simple preparation is
+done.
+
+The next thing is how to figure out the label that instructions belong to. When
+we create a breakpoint, we just pass in the label name and the line number. But
+in the instruction sequence, there is no labels that we can use to determine
+where is current instruction from. For this problem, my idea is follow. Each
+labels correspond to a part of instruction sequence, so if I make the first
+instruction of this part to contains the label's name, then we will know every
+instructions follow it belong to same label until there is another instruction
+which contains different label's name. So I change the structure of instruction
+to be a list which contains three elements. First and third element still are
+the text and proc, the second element will be label name. Then I create a
+procedure called make-labeled-instruction which takes two arguments, text and
+label name. Then in extract-labels procedure, when we find current text is a
+symbol, it means we have to call make-labeled-instruction to create a
+instruction which carries the label name; otherwise, we just call
+make-instruction to make a instruction that the label part is null. At end, we
+will get a list of instructions that some instructions will contain the label
+that they belong to.
+
+Then back to make-new-machine. In execute procedure, for every instruction it
+processes, we first get the label that instruction contains. If the label is
+null, we keep processing; if the label is not null, we use assoc procedure to
+see does the breakpoint list have the same label? If does, we set current-line
+variable to 0 and breakpoint-line to be the number we get from the breakpoint
+list. And once the current-line is equal to breakpoint-line, we will stop
+process and call display to show notation that machine stops.
+
+And there is a problem I meet when I implement restart process. At beginning, I
+thing that restart process just calls execute again. But we I test it, i find I
+am wrong. The machine just stops at breakpoint. Then I check the process by pen
+and find the mistake. When I recall the execute, the current-line and
+breakpoint-line are not changed. So the machine still think reaching the
+breakpoint, not a restart process. In order to fix this problem, i create a
+bealoon variable. When the machine reach the breakpoint, it will also check the
+boolean variable. If the variable is true, it means the machine reach a
+breakpoint, so machine stop there and then set the variable to be false. If the
+variable is false, it means the machine get a restart process, so machine will
+keep processing the instruction.
+
+Also, I spend some times to think about how to cancel a breakpoint. This process
+is removing an element from a list. So my idea is that, we first find the
+element which we want to remove, and then call append procedure to add the list
+before this point with the list after this point. So at end, we get a list which
+does not contain the element. I create a helper procedure to do this process. It
+is a recursive procedure which take two arguments, first-part list and last-part
+list. Everytime this procedure will compare the current element with the
+target. If they are not same, just add current element to the first-part list
+and then call itself with new first-part list and cdr of last-part list. If they
+are same, just call append with first-part list and cdr of last-part list.
+
+For the extra problems, they are not hard. We can just add a check process in
+the code. For 5.9, we just check is e a label expression? If it is, just return
+an error. And for 5.8, we need a helper procedure to check is the label already
+in the label list. If it is, just return an error.

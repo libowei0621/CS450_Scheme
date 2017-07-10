@@ -1,0 +1,80 @@
+Bowei Li
+CS 450
+Assignment 10
+Notes file
+
+The first part of assignment is not hard. For the or expression, we can just
+think it is a sequence of if expression. If the first clause is not a false
+value, we return the value of this clause, otherwise we go to check next
+clause. And if we reach the last clause, we don't need to check is the value
+true or false, we can just return the value of this clause because according to
+R5RS, if all expressions evaluate to false values, the value of the last
+expression is returned. If we reach the last expression, it means all
+expressions before are evaluated to be false, and if the last expression
+evaluate to be not false, return the value; if it is false, also return the
+value. So we can just return the value without to check is that a false value.
+
+For let expression, we can treat it as a calling of application. For example,
+(let ((x 2)(y 3)) (* x y)), we can think it as a calling to the lambda
+expression, which has two parameters and the body of this lambda expression is
+(* x y), with two argument 2 and 3. So we use (map car (cadr exp)) to take the
+name of the variables, in the example are x and y, and use (cddr exp) to get the
+body of the lambda which in the example is (* x y). Then call make-lambda
+function to create a lambda object and cons this object with the values which
+we can get by using (map cadr (cadr exp)). After all, compiler will treat let as
+a application call.
+
+And for compiling the apply expression, it is similar as compile an
+application. We first take the second element from expression list which is the
+function name, compile it and save the value into proc register, and save the
+code into local variable called p-code. And then we take the third element from
+the expression list which is the argument list and call compile function to
+compile is, save the value into argl register, and save the code into the local
+variable called a-code. Then we just call preserving function to combine these
+code with the code return by compile-procedure-call. We first combine a-code
+with compile-procedure-call code. We will save the proc and continue register
+because compile-procedure-call need these two register but the a-code will
+modify these two registers if there are some function calls in the argument
+list. And then we combine p-code with the codes from combination of a-code and
+compile-procedure-call. At this point we need to take care of env and continue
+register because p-code will modify these two register if it is a complex lambda
+function. Actually I think we can write a helper function which translate apply
+expression to be application expression. Take the function part and cons it with
+the argument list. Then it will turn into a application expression and will be
+compiled by compile-application function.
+
+For the map expression, this is my design. First we take the procedure from the
+expression list and compile it into the proc register, save the code into local
+variable called proc-code. And then take the argument list from the expression
+code, reverse the order and compile it into the temp1 register, save the code
+into local variable called argl-code. At this point, we have the lambda object
+in the proc register and the argument list which is reverse order and has been
+evaluated in the temp1 register. Then we take the first element from the
+argument list in temp1, remove it from temp1 and save it into argl register, and
+next, call compile-procedure-call function to evaluate the function which in the
+proc register with the argument which in the argl register, save the value into
+temp2 register. And finally, we use cons operator to cons the value in temp2
+with the value in val register and save it into val register. We keep doing it
+until there is no more element in temp1.
+
+So there are three instruction I create for map expression. First one is called
+map-initial, it just has one line, `((assign ,target (const ()))). It will set
+the target (actually target always is val register) to be null. And second
+instruction is map-test, this instruction needs temp1 and will modify argl
+register. Map-test will be like it:
+'((test (op null?) (reg temp1))
+  (branch (label ,consequent-linkage))
+  (assign argl (op car) (reg temp1)))
+consequent-linkage is same as the compile=if's. If the linkage is 'next, it will
+goto after-map which has nothing in there, otherwise consequent-linkage will be
+the linkage which passed in. So this part is the test which tells machine to
+keep doing the loop or it is end of loop. And the third instruction is map-cons,
+which needs temp1 and temp2 registers, and will modify temp1 and
+target. Map-cons is like it:
+`((assign ,target (op cons) (reg temp2) (reg ,target))
+  (assign temp1 (op cdr) (reg temp1))
+  (goto (label map-loop)))
+After creating these three instructions, I call append-instruction-sequences to
+combine map-initial, 'map-loop(label name), map-test, (compile-procedure-call
+'temp2 'next), map-cons, and after-map. And then call preserving function to
+combine this code with the argl-code and proc-code.
